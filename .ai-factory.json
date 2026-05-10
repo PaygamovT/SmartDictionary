@@ -5,24 +5,7 @@
       "id": "antigravity",
       "skillsDir": ".agent/skills",
       "installedSkills": [
-        "aif",
-        "aif-architecture",
-        "aif-best-practices",
-        "aif-build-automation",
-        "aif-docs",
-        "aif-evolve",
-        "aif-fix",
-        "aif-grounded",
-        "aif-implement",
-        "aif-improve",
-        "aif-loop",
-        "aif-plan",
-        "aif-review",
-        "aif-roadmap",
-        "aif-rules",
-        "aif-security-checklist",
-        "aif-skill-generator",
-        "aif-verify"
+        "aif-commit"
       ],
       "mcp": {
         "github": false,

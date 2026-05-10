@@ -39,3 +39,22 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# --- Python & App specific ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+logs/
+*.log
+
+# PyInstaller & Build
+build/
+dist/
+*.spec
+
+# AI Factory & Agent data
+.agent/
+.ai-factory/
