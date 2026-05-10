@@ -3,22 +3,39 @@
 import { useState, useEffect, useRef } from "react";
 import { parseAnnotatedTextToParagraphs, ParagraphData, Token } from "@/utils/parser";
 import { X, Info, Heart } from "lucide-react";
+import { getHistoryItem } from "@/utils/db";
 
 export default function ReaderPage() {
   const [data, setData] = useState<{ annotated_text: string } | null>(null);
   const [paragraphs, setParagraphs] = useState<ParagraphData[]>([]);
+  const [title, setTitle] = useState<string>("");
   const [selectedWord, setSelectedWord] = useState<{ token: Token, rect: DOMRect } | null>(null);
   const [favorites, setFavorites] = useState<{ id: number, word: string, translation: string }[]>([]);
   
   const popoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const stored = sessionStorage.getItem("processed_data");
-    if (stored) {
-      const parsedData = JSON.parse(stored);
-      setData(parsedData);
-      setParagraphs(parseAnnotatedTextToParagraphs(parsedData.annotated_text));
-    }
+    const loadDoc = async () => {
+      const docId = sessionStorage.getItem("current_doc_id");
+      if (docId) {
+        const item = await getHistoryItem(docId);
+        if (item && item.data) {
+          setData(item.data);
+          setParagraphs(parseAnnotatedTextToParagraphs(item.data.annotated_text));
+          setTitle(item.title);
+          return;
+        }
+      }
+      
+      const stored = sessionStorage.getItem("processed_data");
+      if (stored) {
+        const parsedData = JSON.parse(stored);
+        setData(parsedData);
+        setParagraphs(parseAnnotatedTextToParagraphs(parsedData.annotated_text));
+      }
+    };
+    
+    loadDoc();
 
     const savedFavs = localStorage.getItem("favorites");
     if (savedFavs) {
@@ -54,7 +71,7 @@ export default function ReaderPage() {
 
   return (
     <div className="reader-container">
-      <h1 className="title">Reader</h1>
+      <h1 className="title">{title || "Reader"}</h1>
       
       {!data && (
         <div className="glass-panel" style={{ padding: '40px', textAlign: 'center' }}>
