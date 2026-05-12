@@ -44,9 +44,14 @@ export default function UploadPage() {
     });
 
   const handleProcess = async () => {
-    const encryptedKey = localStorage.getItem("openrouter_api_key");
-    if (!encryptedKey) {
-      setError("Please set your API key in Settings first.");
+    const provider = localStorage.getItem("provider") || "OpenRouter";
+    const encryptedKey = localStorage.getItem(`${provider.toLowerCase()}_api_key`);
+    const targetLanguage = localStorage.getItem("target_language") || "Russian";
+    const baseUrl = localStorage.getItem(`${provider.toLowerCase()}_base_url`) || "";
+    const modelName = localStorage.getItem(`${provider.toLowerCase()}_model_name`) || "";
+
+    if (!encryptedKey && provider !== "Custom") {
+      setError(`Please set your ${provider} API key in Settings first.`);
       return;
     }
 
@@ -73,7 +78,11 @@ export default function UploadPage() {
           fileBase64, 
           fileType,
           text: manualText,
-          encryptedKey 
+          encryptedKey,
+          provider,
+          targetLanguage,
+          baseUrl,
+          modelName
         }),
       });
 
