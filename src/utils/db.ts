@@ -104,6 +104,26 @@ export async function getHistoryItem(id: string): Promise<HistoryItem | null> {
   });
 }
 
+export async function renameHistoryItem(id: string, newTitle: string): Promise<void> {
+  console.log(`[DB] Renaming history item ${id} to "${newTitle}"`);
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    const getReq = store.get(id);
+
+    getReq.onsuccess = () => {
+      const item = getReq.result;
+      if (!item) { reject(new Error('Item not found')); return; }
+      item.title = newTitle;
+      const putReq = store.put(item);
+      putReq.onsuccess = () => resolve();
+      putReq.onerror = () => reject(putReq.error);
+    };
+    getReq.onerror = () => reject(getReq.error);
+  });
+}
+
 export async function deleteHistoryItem(id: string): Promise<void> {
   console.log(`[DB] Deleting history item with ID: ${id}`);
   const db = await initDB();

@@ -1,57 +1,66 @@
-import type { Metadata, Viewport } from "next";
+"use client";
+
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
-import { Upload, BookOpen, CreditCard, Settings } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Upload, History, CreditCard, Settings } from "lucide-react";
 
 const inter = Inter({ subsets: ["latin"] });
-
-export const metadata: Metadata = {
-  title: "Interactive Dictionary",
-  description: "An interactive dictionary that turns documents into flashcards.",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "Dictionary",
-  },
-};
-
-export const viewport: Viewport = {
-  themeColor: "#121212",
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-};
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = usePathname();
+
+  const navItems = [
+    { href: "/", icon: Upload, label: "Upload" },
+    { href: "/history", icon: History, label: "History" },
+    { href: "/flashcards", icon: CreditCard, label: "Cards" },
+    { href: "/settings", icon: Settings, label: "Settings" },
+  ];
+
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <title>Interactive Dictionary</title>
+        <meta name="description" content="An interactive dictionary that turns documents into flashcards." />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-title" content="Dictionary" />
+        <meta name="theme-color" content="#121212" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+      </head>
       <body className={inter.className}>
         <div className="app-container">
-          <main className="content">{children}</main>
-          <nav className="nav-bar glass-panel">
-            <Link href="/" className="nav-item">
-              <Upload size={24} />
-              <span>Upload</span>
-            </Link>
-            <Link href="/reader" className="nav-item">
-              <BookOpen size={24} />
-              <span>Reader</span>
-            </Link>
-            <Link href="/flashcards" className="nav-item">
-              <CreditCard size={24} />
-              <span>Cards</span>
-            </Link>
-            <Link href="/settings" className="nav-item">
-              <Settings size={24} />
-              <span>Settings</span>
-            </Link>
+          <nav className="sidebar">
+            <div className="sidebar-logo">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/app_logo.png" alt="Logo" className="sidebar-logo-img" />
+            </div>
+            <div className="sidebar-nav">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`sidebar-item ${isActive ? "active" : ""}`}
+                    title={item.label}
+                  >
+                    <div className={`sidebar-icon-wrapper ${isActive ? "active" : ""}`}>
+                      <Icon size={22} strokeWidth={isActive ? 2.5 : 1.8} />
+                    </div>
+                    <span className="sidebar-label">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </nav>
+          <main className="content">{children}</main>
         </div>
       </body>
     </html>

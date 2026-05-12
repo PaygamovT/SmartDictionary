@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Upload as UploadIcon, FileText, Send, Loader2, AlertCircle, History, BookOpen, Trash2 } from "lucide-react";
-import { saveHistoryItem, getHistoryItems, deleteHistoryItem } from "@/utils/db";
+import { Upload as UploadIcon, FileText, Send, Loader2, AlertCircle } from "lucide-react";
+import { saveHistoryItem } from "@/utils/db";
 
 export default function UploadPage() {
   const router = useRouter();
@@ -12,21 +12,7 @@ export default function UploadPage() {
   const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [history, setHistory] = useState<{ id: string, title: string, timestamp: number }[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const loadHistory = async () => {
-    try {
-      const items = await getHistoryItems();
-      setHistory(items);
-    } catch (err) {
-      console.error("Failed to load history", err);
-    }
-  };
-
-  useEffect(() => {
-    loadHistory();
-  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -111,27 +97,8 @@ export default function UploadPage() {
     }
   };
 
-  const handleReadHistory = (id: string) => {
-    sessionStorage.setItem("current_doc_id", id);
-    router.push("/reader");
-  };
-
-  const handleDeleteHistory = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      await deleteHistoryItem(id);
-      await loadHistory();
-    } catch (err) {
-      console.error("Failed to delete history", err);
-    }
-  };
-
   return (
-    <div className="upload-container">
-      <div style={{ textAlign: 'center', marginBottom: '10px' }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/app_logo.png" alt="Logo" style={{ width: '80px', height: '80px', borderRadius: '20px', boxShadow: 'var(--shadow)' }} />
-      </div>
+    <div className="upload-container" style={{ maxWidth: '640px', margin: '0 auto' }}>
       <h1 className="title" style={{ textAlign: 'center' }}>Translate & Learn</h1>
       
       <div className="glass-panel" style={{ padding: '30px', marginBottom: '24px' }}>
@@ -224,65 +191,6 @@ export default function UploadPage() {
           )}
         </button>
       </div>
-
-      {history.length > 0 && (
-        <div className="glass-panel" style={{ padding: '30px', marginBottom: '24px' }}>
-          <h2 style={{ fontSize: '1.2rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <History size={20} />
-            Document History
-          </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {history.map(item => (
-              <div 
-                key={item.id}
-                onClick={() => handleReadHistory(item.id)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '16px',
-                  borderRadius: '12px',
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  cursor: 'pointer',
-                  border: '1px solid transparent',
-                  transition: 'all 0.2s',
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--accent)'}
-                onMouseLeave={(e) => e.currentTarget.style.borderColor = 'transparent'}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <BookOpen size={20} style={{ color: 'var(--accent)' }} />
-                  <div>
-                    <div style={{ fontWeight: '600' }}>{item.title}</div>
-                    <div style={{ fontSize: '0.8rem', opacity: 0.5 }}>
-                      {new Date(item.timestamp).toLocaleString()}
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={(e) => handleDeleteHistory(item.id, e)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#ff4b2b',
-                    opacity: 0.7,
-                    cursor: 'pointer',
-                    padding: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: '8px'
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.background = 'rgba(255, 75, 43, 0.1)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.7'; e.currentTarget.style.background = 'none'; }}
-                >
-                  <Trash2 size={18} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       <style jsx global>{`
         @keyframes spin {
