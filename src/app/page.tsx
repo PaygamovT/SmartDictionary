@@ -2,23 +2,28 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Upload as UploadIcon, FileText, Send, Loader2, AlertCircle } from "lucide-react";
+import { Paperclip, Send, Loader2, AlertCircle, FileText, X, Sparkles } from "lucide-react";
 import { saveHistoryItem } from "@/utils/db";
 
 export default function UploadPage() {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [manualText, setManualText] = useState("");
-  const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
       setError("");
     }
+  };
+
+  const removeFile = () => {
+    setFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const toBase64 = (file: File): Promise<string> => 
@@ -42,7 +47,7 @@ export default function UploadPage() {
     }
 
     if (!file && !manualText) {
-      setError("Please select a file or enter text.");
+      setError("Please attach a file or enter text.");
       return;
     }
 
@@ -79,7 +84,7 @@ export default function UploadPage() {
       }
 
       const docId = Date.now().toString();
-      const docTitle = title.trim() || (file ? file.name : "Untitled Document");
+      const docTitle = file ? file.name : (manualText ? manualText.trim().slice(0, 30) + "..." : "Untitled Document");
 
       await saveHistoryItem({
         id: docId,
@@ -97,97 +102,175 @@ export default function UploadPage() {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleProcess();
+    }
+  };
+
+  // Auto-resize textarea
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setManualText(e.target.value);
+    const el = e.target;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 200) + 'px';
+  };
+
   return (
-    <div className="upload-container" style={{ maxWidth: '640px', margin: '0 auto' }}>
-      <h1 className="title" style={{ textAlign: 'center' }}>Translate & Learn</h1>
+    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 48px)', maxWidth: '800px', margin: '0 auto' }}>
       
-      <div className="glass-panel" style={{ padding: '30px', marginBottom: '24px' }}>
-        <div className="input-group" style={{ marginBottom: '20px' }}>
-          <label style={{ fontSize: '0.9rem', fontWeight: 'bold', marginBottom: '10px', display: 'block' }}>DOCUMENT TITLE (OPTIONAL)</label>
-          <input
-            type="text"
-            className="input-field"
-            style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'rgba(255, 255, 255, 0.05)', color: '#fff' }}
-            placeholder='e.g., "My Spring"'
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
+      {/* Empty state / center content */}
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <Sparkles size={56} style={{ opacity: 0.15, margin: '0 auto 16px' }} />
+          <h1 className="title" style={{ textAlign: 'center', fontSize: '1.8rem' }}>Translate & Learn</h1>
+          <p style={{ opacity: 0.35, fontSize: '0.9rem', maxWidth: '360px', margin: '0 auto', lineHeight: 1.6 }}>
+            Paste text or attach a document to extract and translate every word with AI.
+          </p>
         </div>
+      </div>
 
-        <div className="input-group">
-          <label style={{ fontSize: '0.9rem', fontWeight: 'bold', marginBottom: '10px' }}>UPLOAD MATERIAL</label>
-          <div 
+      {/* Error */}
+      {error && (
+        <div style={{ 
+          color: '#ff4b2b', 
+          padding: '10px 16px', 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '8px', 
+          fontSize: '0.85rem',
+          background: 'rgba(255, 75, 43, 0.08)',
+          borderRadius: '10px',
+          marginBottom: '12px'
+        }}>
+          <AlertCircle size={16} />
+          {error}
+        </div>
+      )}
+
+      {/* Attached file chip */}
+      {file && (
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '8px', 
+          padding: '8px 12px',
+          background: 'rgba(187, 134, 252, 0.08)',
+          border: '1px solid rgba(187, 134, 252, 0.2)',
+          borderRadius: '10px',
+          marginBottom: '8px',
+          fontSize: '0.85rem',
+        }}>
+          <FileText size={16} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+          <span style={{ color: 'var(--accent)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {file.name}
+          </span>
+          <span style={{ opacity: 0.4, fontSize: '0.75rem', flexShrink: 0 }}>
+            {(file.size / 1024 / 1024).toFixed(2)} MB
+          </span>
+          <button 
+            onClick={removeFile}
             style={{ 
-              border: '2px dashed var(--glass-border)', 
-              borderRadius: '12px', 
-              padding: '40px', 
-              textAlign: 'center',
-              cursor: 'pointer',
-              background: file ? 'rgba(187, 134, 252, 0.05)' : 'transparent',
-              transition: 'all 0.3s'
+              background: 'none', 
+              border: 'none', 
+              color: 'rgba(255,255,255,0.4)', 
+              cursor: 'pointer', 
+              padding: '2px',
+              display: 'flex',
+              marginLeft: 'auto',
+              flexShrink: 0,
             }}
-            onClick={() => fileInputRef.current?.click()}
           >
-            {file ? (
-              <div style={{ color: 'var(--accent)' }}>
-                <FileText size={48} style={{ margin: '0 auto 10px auto' }} />
-                <p style={{ fontWeight: '600' }}>{file.name}</p>
-                <p style={{ fontSize: '0.8rem', opacity: 0.7 }}>{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-              </div>
-            ) : (
-              <div style={{ opacity: 0.5 }}>
-                <UploadIcon size={48} style={{ margin: '0 auto 10px auto' }} />
-                <p>Click or drag PDF/Images here</p>
-                <p style={{ fontSize: '0.7rem' }}>Max 20MB</p>
-              </div>
-            )}
-            <input 
-              ref={fileInputRef}
-              type="file" 
-              accept="image/*,.pdf,.txt" 
-              style={{ display: 'none' }} 
-              onChange={handleFileChange} 
-              onClick={(e) => {
-                e.stopPropagation();
-                e.currentTarget.value = "";
-              }}
-            />
-          </div>
+            <X size={14} />
+          </button>
         </div>
+      )}
 
-        <div style={{ textAlign: 'center', margin: '20px 0', opacity: 0.3, fontWeight: 'bold' }}>OR</div>
+      {/* Chat-style input bar */}
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'flex-end', 
+        gap: '8px',
+        padding: '10px 12px',
+        background: 'var(--surface)',
+        border: '1px solid var(--glass-border)',
+        borderRadius: '14px',
+        marginBottom: '16px',
+      }}>
+        {/* Attach button */}
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: file ? 'var(--accent)' : 'rgba(255,255,255,0.4)',
+            cursor: 'pointer',
+            padding: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '8px',
+            transition: 'all 0.2s',
+            flexShrink: 0,
+          }}
+          title="Attach file"
+        >
+          <Paperclip size={20} />
+        </button>
 
-        <div className="input-group">
-          <label style={{ fontSize: '0.9rem', fontWeight: 'bold', marginBottom: '10px' }}>PASTE TEXT</label>
-          <textarea
-            className="input-field"
-            style={{ width: '100%', minHeight: '120px', resize: 'vertical' }}
-            placeholder="Paste text you want to learn..."
-            value={manualText}
-            onChange={(e) => setManualText(e.target.value)}
-          />
-        </div>
+        <input 
+          ref={fileInputRef}
+          type="file" 
+          accept="image/*,.pdf,.txt" 
+          style={{ display: 'none' }} 
+          onChange={handleFileChange} 
+          onClick={(e) => {
+            e.stopPropagation();
+            e.currentTarget.value = "";
+          }}
+        />
 
-        {error && (
-          <div style={{ color: '#ff4b2b', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem' }}>
-            <AlertCircle size={16} />
-            {error}
-          </div>
-        )}
+        {/* Text input */}
+        <textarea
+          ref={textareaRef}
+          style={{ 
+            flex: 1, 
+            background: 'none', 
+            border: 'none', 
+            color: 'var(--foreground)', 
+            fontSize: '0.9rem',
+            resize: 'none',
+            outline: 'none',
+            minHeight: '24px',
+            maxHeight: '200px',
+            lineHeight: '1.5',
+            padding: '4px 0',
+            fontFamily: 'inherit',
+          }}
+          placeholder="Paste text you want to learn..."
+          value={manualText}
+          onChange={handleTextChange}
+          onKeyDown={handleKeyDown}
+          rows={1}
+        />
 
-        <button 
-          className="btn btn-primary" 
-          style={{ width: '100%', height: '50px' }} 
+        {/* Send button */}
+        <button
+          className="btn btn-primary"
           onClick={handleProcess}
-          disabled={loading}
+          disabled={loading || (!file && !manualText)}
+          style={{ 
+            padding: '8px 12px', 
+            borderRadius: '10px',
+            flexShrink: 0,
+            opacity: (!file && !manualText) ? 0.4 : 1,
+          }}
         >
           {loading ? (
-            <Loader2 className="animate-spin" />
+            <Loader2 size={20} className="animate-spin" />
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
-              <Send size={18} />
-              Process Document
-            </div>
+            <Send size={20} />
           )}
         </button>
       </div>
