@@ -1,4 +1,4 @@
-# SmartDictionary
+# Interactive Dictionary
 
 > A Next.js-powered Progressive Web App for AI-assisted language learning.
 

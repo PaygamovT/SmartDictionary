@@ -1,0 +1,20 @@
+{
+  "version": "2.2.2",
+  "agents": [
+    {
+      "id": "antigravity",
+      "skillsDir": ".agent/skills",
+      "installedSkills": [
+        "aif-commit"
+      ],
+      "mcp": {
+        "github": false,
+        "filesystem": false,
+        "postgres": false,
+        "chromeDevtools": false,
+        "playwright": false
+      }
+    }
+  ],
+  "extensions": []
+}

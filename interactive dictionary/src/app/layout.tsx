@@ -25,7 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <title>SmartDictionary</title>
+        <title>Interactive Dictionary</title>
         <meta name="description" content="An interactive dictionary that turns documents into flashcards." />
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
