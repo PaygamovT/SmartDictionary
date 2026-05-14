@@ -10,6 +10,7 @@ export default function ReaderPage() {
   const [paragraphs, setParagraphs] = useState<ParagraphData[]>([]);
   const [title, setTitle] = useState<string>("");
   const [selectedWord, setSelectedWord] = useState<{ token: Token, rect: DOMRect } | null>(null);
+  const [showRaw, setShowRaw] = useState(false);
   const [favorites, setFavorites] = useState<{ id: number, word: string, translation: string }[]>([]);
   
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -95,6 +96,53 @@ export default function ReaderPage() {
               ))}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* ── Debug: Raw AI Output ── */}
+      {data && (
+        <div style={{ marginTop: '24px' }}>
+          <button
+            onClick={() => setShowRaw(v => !v)}
+            style={{
+              background: 'none',
+              border: '1px solid rgba(255,255,255,0.12)',
+              color: 'rgba(255,255,255,0.4)',
+              borderRadius: '8px',
+              padding: '6px 14px',
+              fontSize: '0.78rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'all 0.2s',
+            }}
+          >
+            <span style={{ fontSize: '1em' }}>{showRaw ? '▼' : '▶'}</span>
+            {showRaw ? 'Hide Raw AI Output' : 'Show Raw AI Output'}
+          </button>
+
+          {showRaw && (
+            <div
+              style={{
+                marginTop: '12px',
+                background: 'rgba(0,0,0,0.4)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: '12px',
+                padding: '16px 20px',
+                fontFamily: 'monospace',
+                fontSize: '0.78rem',
+                lineHeight: '1.7',
+                color: '#a8ffb0',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                maxHeight: '400px',
+                overflowY: 'auto',
+              }}
+            >
+              {data.annotated_text}
+            </div>
+          )}
         </div>
       )}
 
